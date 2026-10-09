@@ -2,14 +2,15 @@ package cl.abuhelp.launcher;
 import android.app.*;import android.content.*;import android.content.pm.PackageManager;import android.net.Uri;
 import android.os.*;import android.widget.*;import java.time.*;import java.time.format.DateTimeFormatter;import java.util.*;import org.json.*;
 public class MainActivity extends Activity{
- private TextView clock,date,status;private Button missed,notices;private VoiceAssistant voice;private final Handler h=new Handler(Looper.getMainLooper());
+ private TextView clock,date,status;private Button missed,notices,ongoing;private VoiceAssistant voice;private final Handler h=new Handler(Looper.getMainLooper());
  private final Runnable tick=new Runnable(){public void run(){updateTime();h.postDelayed(this,1000);}};
  private final Runnable noticeChanged=()->h.post(this::updateNotices);
- private final Runnable calls=()->runOnUiThread(()->{if(voice!=null&&AbuInCallService.hasCalls())voice.stop();});
+ private final Runnable calls=()->runOnUiThread(()->{if(voice!=null&&AbuInCallService.hasCalls())voice.stop();updateOngoing();});
  @Override public void onCreate(Bundle b){super.onCreate(b);render();handleDialIntent(getIntent());}
  private void render(){
   LinearLayout page=Ui.page(this,"ABUHELP");
   clock=Ui.text(this,"",52,true);date=Ui.text(this,"",24,false);page.addView(clock);page.addView(date);updateTime();
+  ongoing=Ui.button(this,"Volver a la llamada",Ui.GREEN,()->startActivity(new Intent(this,CallActivity.class)));page.addView(ongoing);updateOngoing();
   notices=Ui.button(this,"Notificaciones",Ui.NAVY,()->startActivity(new Intent(this,NotificationsActivity.class)));
   notices.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_notifications,0,0,0);page.addView(notices);updateNotices();
   missed=Ui.button(this,"Llamadas perdidas",Ui.RED,()->startActivity(new Intent(this,ContactsActivity.class)));page.addView(missed);updateMissed();
@@ -27,6 +28,7 @@ public class MainActivity extends Activity{
   page.addView(Ui.button(this,"Acceso familiar",Ui.NAVY,()->startActivity(new Intent(this,CaregiverActivity.class))));
   if(!AppPrefs.hasPin(this))page.addView(Ui.text(this,"Un familiar debe completar la configuración inicial.",22,false));
  }
+ private void updateOngoing(){if(ongoing!=null)ongoing.setVisibility(AbuInCallService.hasCalls()?android.view.View.VISIBLE:android.view.View.GONE);}
  private void updateNotices(){if(notices==null)return;int n=NoticeListener.current(this).size();notices.setText(n>0?"Notificaciones ("+n+")":"Notificaciones");}
  private void updateMissed(){if(missed==null)return;int count=AppPrefs.prefs(this).getInt("missed_count",0);missed.setVisibility(count>0?android.view.View.VISIBLE:android.view.View.GONE);if(count>0)missed.setText(count+(count==1?" llamada perdida":" llamadas perdidas")+"\n"+AppPrefs.prefs(this).getString("last_missed_name",""));}
  private void updateTime(){if(clock==null)return;updateMissed();ZonedDateTime now=ZonedDateTime.now();String time=now.format(DateTimeFormatter.ofPattern("HH:mm"));String day=now.format(DateTimeFormatter.ofPattern("EEEE d 'de' MMMM",new Locale("es","CL")));if(!time.contentEquals(clock.getText()))clock.setText(time);if(!day.contentEquals(date.getText()))date.setText(day);}
@@ -52,7 +54,7 @@ public class MainActivity extends Activity{
    default:voice.say("Puedes decir: abre YouTube, qué hora es, contactos, noticias, clima o recuérdame un remedio.");break;
   }
  }
- @Override protected void onResume(){super.onResume();NoticeListener.addObserver(noticeChanged);updateNotices();h.removeCallbacks(tick);tick.run();AbuInCallService.addListener(calls);try{ReminderStore.rescheduleAll(this);}catch(Exception ignored){}}
+ @Override protected void onResume(){super.onResume();NoticeListener.addObserver(noticeChanged);updateNotices();updateOngoing();h.removeCallbacks(tick);tick.run();AbuInCallService.addListener(calls);try{ReminderStore.rescheduleAll(this);}catch(Exception ignored){}}
  @Override protected void onPause(){NoticeListener.removeObserver(noticeChanged);AbuInCallService.removeListener(calls);h.removeCallbacks(tick);if(voice!=null)voice.stop();super.onPause();}
  @Override protected void onDestroy(){if(voice!=null)voice.destroy();h.removeCallbacksAndMessages(null);super.onDestroy();}
  @Override public void onRequestPermissionsResult(int r,String[] p,int[] g){super.onRequestPermissionsResult(r,p,g);if(r==401){status.setText(g.length>0&&g[0]==PackageManager.PERMISSION_GRANTED?"Micrófono habilitado. Toca Hablar.":"Puedes seguir usando los botones sin micrófono.");}}
