@@ -5,9 +5,9 @@ import java.util.*;import java.util.function.Consumer;
 public final class VoiceAssistant implements RecognitionListener{
  private final Activity activity;private final Consumer<String> status;private final Consumer<VoiceCommand> commands;
  private final Handler handler=new Handler(Looper.getMainLooper());private SpeechRecognizer recognizer;private TextToSpeech tts;
- private int generation=0;private boolean useLocal=true;private boolean listening=false,ready=false,closed=false;private final Runnable timeout=()->{stop();status.accept("No te escuché. Puedes tocar Hablar otra vez.");};
+ private int generation=0;private boolean useLocal=true;private boolean listening=false,ready=false,closed=false;private final Runnable timeout;
  public VoiceAssistant(Activity a,Consumer<String> s,Consumer<VoiceCommand> c){
-  activity=a;status=s;commands=c;
+  activity=a;status=s;commands=c;timeout=()->{stop();status.accept("No te escuché. Puedes tocar Hablar otra vez.");};
   tts=new TextToSpeech(a,result->{if(result==TextToSpeech.SUCCESS&&!closed){int lang=tts.setLanguage(new Locale("es","CL"));if(lang<0)lang=tts.setLanguage(new Locale("es","ES"));ready=lang>=0;tts.setSpeechRate(0.85f);}});
  }
  public boolean inCall(){try{if(activity.checkSelfPermission(Manifest.permission.READ_PHONE_STATE)==PackageManager.PERMISSION_GRANTED&&activity.getSystemService(android.telecom.TelecomManager.class).isInCall())return true;}catch(RuntimeException ignored){}AudioManager am=activity.getSystemService(AudioManager.class);return AbuInCallService.hasCalls()||(am!=null&&(am.getMode()==AudioManager.MODE_IN_CALL||am.getMode()==AudioManager.MODE_IN_COMMUNICATION));}

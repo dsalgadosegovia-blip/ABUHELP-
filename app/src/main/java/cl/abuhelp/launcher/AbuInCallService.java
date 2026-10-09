@@ -126,6 +126,26 @@ public final class AbuInCallService extends InCallService {
     }
     @Override public void onCallRemoved(Call c) { remove(c); }
     private void remove(Call c) {
+        if (!calls.containsKey(c)) return;
+        Call.Details details = c.getDetails();
+        if (details != null && details.getDisconnectCause() != null
+                && details.getDisconnectCause().getCode() == DisconnectCause.MISSED) {
+            String caller = name(this, c);
+            SharedPreferences p = getSharedPreferences("abuhelp", MODE_PRIVATE);
+            p.edit().putInt("missed_count", p.getInt("missed_count",0)+1)
+                .putString("last_missed_name", caller).apply();
+            NotificationChannel missed = new NotificationChannel("abuhelp_missed", "Llamadas perdidas", NotificationManager.IMPORTANCE_DEFAULT);
+            notifications.createNotificationChannel(missed);
+            PendingIntent open = PendingIntent.getActivity(this, 4002, new Intent(this,ContactsActivity.class),
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+            try {
+                if (notifications.areNotificationsEnabled())
+                    notifications.notify(4002,new Notification.Builder(this,"abuhelp_missed")
+                        .setSmallIcon(android.R.drawable.sym_call_missed).setContentTitle("Llamada perdida")
+                        .setContentText(caller).setVisibility(Notification.VISIBILITY_PRIVATE)
+                        .setContentIntent(open).setAutoCancel(true).build());
+            } catch (SecurityException ignored) { }
+        }
         Call.Callback cb = callbacks.remove(c);
         if (cb != null) c.unregisterCallback(cb);
         Integer n = calls.remove(c);

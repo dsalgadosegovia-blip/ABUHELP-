@@ -12,6 +12,7 @@ public class ContactsActivity extends Activity{
  }
  private String normalize(String s){return java.text.Normalizer.normalize(s.toLowerCase(Locale.ROOT),java.text.Normalizer.Form.NFD).replaceAll("\\p{M}","").trim();}
  private void showContacts(){
+  AppPrefs.prefs(this).edit().putInt("missed_count",0).apply();getSystemService(NotificationManager.class).cancel(4002);
   page=Ui.page(this,"¿A quién quieres llamar?");JSONArray contacts=AppPrefs.contacts(this);
   if(contacts.length()==0)page.addView(Ui.text(this,"Un familiar puede añadir aquí tus contactos desde Acceso familiar.",26,false));
   for(int i=0;i<contacts.length();i++){JSONObject c=contacts.optJSONObject(i);if(c==null)continue;String name=c.optString("name"),phone=c.optString("phone");
