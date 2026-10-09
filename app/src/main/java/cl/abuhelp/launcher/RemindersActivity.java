@@ -84,14 +84,11 @@ public final class RemindersActivity extends Activity {
         if (raw != null) {
             raw = raw.substring(0, Math.min(raw.length(), 300));
             draftView.setText("Borrador de voz: " + raw + "\nRevise los datos antes de confirmar.");
-            Matcher m = Pattern.compile("(?iu)^(?:recu[eé]rdame|recuerda|recordatorio(?: de)?)\\s+(.+?)"
-                    + "\\s+a las?\\s+([01]?\\d|2[0-3]):([0-5]\\d)"
-                    + "(?:\\s+(cada d[ií]a|diariamente|todos los d[ií]as))?[.!]?$").matcher(raw.trim());
-            if (m.matches()) {
-                label.setText(m.group(1)); time.setText(String.format(Locale.ROOT, "%02d:%02d",
-                        Integer.parseInt(m.group(2)), Integer.parseInt(m.group(3))));
-                daily.setChecked(m.group(4) != null);
-            }
+            ReminderDraft parsed = ReminderDraft.parse(raw);
+            if (!parsed.label.isEmpty()) label.setText(parsed.label);
+            if (parsed.hour >= 0) time.setText(String.format(Locale.ROOT,"%02d:%02d",parsed.hour,parsed.minute));
+            daily.setChecked(parsed.daily);
+            if (!parsed.explanation.isEmpty()) draftView.append("\n" + parsed.explanation);
         }
         if (source.hasExtra("label")) label.setText(source.getStringExtra("label"));
         if (source.hasExtra("hour") && source.hasExtra("minute")) {

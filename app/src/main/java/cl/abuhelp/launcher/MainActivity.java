@@ -25,7 +25,7 @@ public class MainActivity extends Activity{
   if(!AppPrefs.hasPin(this))page.addView(Ui.text(this,"Un familiar debe completar la configuración inicial.",22,false));
  }
  private void updateMissed(){if(missed==null)return;int count=AppPrefs.prefs(this).getInt("missed_count",0);missed.setVisibility(count>0?android.view.View.VISIBLE:android.view.View.GONE);if(count>0)missed.setText(count+(count==1?" llamada perdida":" llamadas perdidas")+"\n"+AppPrefs.prefs(this).getString("last_missed_name",""));}
- private void updateTime(){if(clock==null)return;updateMissed();ZonedDateTime now=ZonedDateTime.now();clock.setText(now.format(DateTimeFormatter.ofPattern("HH:mm")));date.setText(now.format(DateTimeFormatter.ofPattern("EEEE d 'de' MMMM",new Locale("es","CL"))));}
+ private void updateTime(){if(clock==null)return;updateMissed();ZonedDateTime now=ZonedDateTime.now();String time=now.format(DateTimeFormatter.ofPattern("HH:mm"));String day=now.format(DateTimeFormatter.ofPattern("EEEE d 'de' MMMM",new Locale("es","CL")));if(!time.contentEquals(clock.getText()))clock.setText(time);if(!day.contentEquals(date.getText()))date.setText(day);}
  private void handleDialIntent(Intent intent){
   if(Intent.ACTION_DIAL.equals(intent.getAction())){Intent c=new Intent(this,ContactsActivity.class);Uri data=intent.getData();if(data!=null)c.putExtra("dialNumber",data.getSchemeSpecificPart());startActivity(c);setIntent(new Intent(Intent.ACTION_MAIN));}
  }

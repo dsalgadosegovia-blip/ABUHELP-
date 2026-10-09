@@ -33,6 +33,10 @@ jobs:
           cache-disabled: true
       - name: Build, lint and unit tests
         run: gradle --no-daemon --stacktrace :app:assembleDebug :app:lintDebug :app:testDebugUnitTest
+      - name: Print validation diagnostics
+        if: always()
+        run: |
+          if [ -f app/build/reports/lint-results-debug.txt ]; then cat app/build/reports/lint-results-debug.txt; fi
       - name: Verify generated APK
         shell: bash
         run: |
