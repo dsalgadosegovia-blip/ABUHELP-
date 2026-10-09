@@ -8,6 +8,7 @@ Versión inicial de evaluación. Launcher, contactos con letra grande, controles
 - Teléfono predeterminado con Contestar, Rechazar, Colgar y Altavoz grandes. Requiere conceder el rol de teléfono.
 - Botón Hablar: hora, apertura de funciones, búsqueda de contacto y borradores de recordatorios.
 - Configuración del cuidador protegida por PIN de seis cifras, sin PIN predeterminado.
+- Protección opcional mediante administración del dispositivo: Wi-Fi, modo avión, brillo y otros ajustes; salida con PIN y retorno a ABUHELP mediante Inicio.
 - Recordatorios configurados y confirmados por el cuidador, con avisos locales. Registrar un aviso visto no prueba una toma.
 - Noticias de Chile; acceso web al clima de San Miguel, Santiago; juego Mahjong elegido entre las aplicaciones instaladas.
 
@@ -32,7 +33,7 @@ GitHub Actions ejecuta estas tareas, comprueba la firma y genera el hash SHA-256
 ## Alcance y límites de la beta
 - Las llamadas personales de WhatsApp conservan su propia interfaz. El acceso Abrir WhatsApp lleva al contacto; no implementa controles propios para responder, terminar ni cambiar su altavoz.
 - La interfaz de aplicaciones externas permanece bajo su control.
-- El PIN protege ABUHELP; no bloquea ajustes de Android, desinstalación ni detención forzada.
+- La instalación normal protege solo ABUHELP mediante PIN. El modo opcional de dispositivo administrado aplica restricciones de ajustes y fija Inicio: véase [Preparar el teléfono](PREPARAR_TELEFONO.md). Requiere preparación explícita por USB, Android 13+ y validación en HyperOS.
 - Los avisos requieren permisos de notificación y alarmas exactas; revisar batería y autoinicio del fabricante. Después de reiniciar requieren el primer desbloqueo. No usar como único sistema de supervisión de medicación.
 - No se infieren tratamientos, dosis ni compensaciones de tomas.
 - La voz usa el servicio Android disponible: puede requerir internet o un idioma descargado y enviar audio al proveedor. ABUHELP no guarda audio.

@@ -29,6 +29,25 @@ def tap(text):
     if n.attrib.get("enabled") != "true": time.sleep(1.2); n = node(text)
     bounds = [int(x) for x in re.findall(r"\d+", n.attrib["bounds"])]
     adb("shell", "input", "tap", str((bounds[0]+bounds[2])//2), str((bounds[1]+bounds[3])//2))
+def tap_scrolled(text):
+    for attempt in range(7):
+        try:
+            node(text, timeout=3)
+            tap(text)
+            return
+        except AssertionError:
+            adb("shell", "input", "swipe", "500", "1700", "500", "500", "400")
+    raise AssertionError("No se pudo alcanzar " + text)
+def enter_test_pin():
+    fields = [n for n in hierarchy().iter("node") if n.attrib.get("class") == "android.widget.EditText"]
+    assert fields, "Falta campo PIN"
+    for n in fields:
+        b = [int(x) for x in re.findall(r"\d+", n.attrib["bounds"])]
+        adb("shell", "input", "tap", str((b[0]+b[2])//2), str((b[1]+b[3])//2))
+        adb("shell", "input", "text", "123456")
+        adb("shell", "input", "keyevent", "KEYCODE_BACK")
+    tap_scrolled("Crear PIN" if len(fields) == 2 else "Entrar")
+    node("Acceso familiar")
 def capture(name):
     png = adb("exec-out", "screencap", "-p", binary=True)
     (OUT / (name + ".png")).write_bytes(png)
@@ -83,15 +102,53 @@ try:
     node("En llamada")
     # Allow the anti-repeat guard to settle; a fresh tap is required.
     time.sleep(1.2)
-    tap("Activar altavoz")
-    node("Altavoz ACTIVADO")
+    texts = {n.attrib.get("text") for n in hierarchy().iter("node")}
+    if "Altavoz ACTIVADO" in texts:
+        results.append("Emulador inició con altavoz activo; cambio a auricular pendiente de teléfono físico")
+    else:
+        tap("Activar altavoz")
+        node("Altavoz ACTIVADO")
     capture("05-speaker")
     time.sleep(1.2)
     tap("Colgar")
     node("Sin llamadas disponibles")
     calls = adb("emu", "gsm", "list")
     assert "5550100" not in calls, calls
-    results.append("Llamada entrante simulada: contestar, altavoz y colgar")
+    results.append("Llamada entrante simulada: contestar, estado de altavoz visible y colgar")
+
+    # Provision only this disposable emulator, then exercise real caregiver UI.
+    adb("shell", "dpm", "set-device-owner", P + "/.FamilyAdminReceiver")
+    adb("shell", "svc", "wifi", "enable")
+    launch()
+    tap_scrolled("Acceso familiar")
+    enter_test_pin()
+    tap_scrolled("Protección del teléfono")
+    tap_scrolled("Activar protección")
+    tap("Confirmar")
+    node("Protección activa")
+    tap("Entendido")
+    policy = adb("shell", "dumpsys", "device_policy")
+    for key in ("no_change_wifi_state", "no_airplane_mode", "no_config_brightness"):
+        assert key in policy, "No se aplicó " + key
+    capture("06-device-protection")
+    adb("shell", "am", "start", "-W", "-a", "android.settings.WIFI_SETTINGS")
+    adb("shell", "input", "keyevent", "KEYCODE_HOME")
+    node("ABUHELP")
+    results.append("Administración: Wi-Fi, modo avión y brillo restringidos; Inicio regresa a ABUHELP")
+    tap_scrolled("Acceso familiar")
+    enter_test_pin()
+    tap_scrolled("Protección del teléfono")
+    tap_scrolled("Desactivar protección")
+    node("Administración lista; protección desactivada")
+    tap("Entendido")
+    tap_scrolled("Retirar administración")
+    tap("Confirmar")
+    node("Preparación pendiente")
+    tap("Entendido")
+    policy = adb("shell", "dumpsys", "device_policy")
+    assert "Device Owner:" not in policy, "La administración sigue activa"
+    results.append("Salida con PIN: desactivar protección y retirar administración sin borrar datos")
+
     (OUT / "result.json").write_text(json.dumps({"passed":results}, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps({"passed":results}, ensure_ascii=False))
 except Exception:
