@@ -12,7 +12,18 @@ def hierarchy():
     adb("shell", "uiautomator", "dump", "/sdcard/abuhelp-window.xml", check=False)
     data = adb("exec-out", "cat", "/sdcard/abuhelp-window.xml")
     (OUT / "last-window.xml").write_text(data, encoding="utf-8")
-    return ET.fromstring(data)
+    root = ET.fromstring(data)
+    # The stock Pixel launcher can ANR during cold boot on a busy CI runner.
+    # Never dismiss an ABUHELP crash or a dialog from any other application.
+    if any(n.attrib.get("text") == "Pixel Launcher isn\'t responding" for n in root.iter("node")):
+        for n in root.iter("node"):
+            if n.attrib.get("resource-id") == "android:id/aerr_close":
+                b = [int(x) for x in re.findall(r"\d+", n.attrib["bounds"])]
+                adb("shell", "input", "tap", str((b[0]+b[2])//2), str((b[1]+b[3])//2))
+                print("CI environment: closed stock Pixel Launcher ANR dialog")
+                time.sleep(1)
+                return ET.fromstring("<hierarchy/>")
+    return root
 def node(text, timeout=35):
     until = time.monotonic() + timeout
     last = None
@@ -132,6 +143,7 @@ try:
         assert key in policy, "No se aplicó " + key
     capture("06-device-protection")
     adb("shell", "am", "start", "-W", "-a", "android.settings.WIFI_SETTINGS")
+    time.sleep(1.2) # Background timeout must close the caregiver session.
     adb("shell", "input", "keyevent", "KEYCODE_HOME")
     node("ABUHELP")
     results.append("Administración: Wi-Fi, modo avión y brillo restringidos; Inicio regresa a ABUHELP")
