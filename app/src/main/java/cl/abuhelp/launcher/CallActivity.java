@@ -81,6 +81,7 @@ public final class CallActivity extends Activity {
         if (body == null || isFinishing()) return;
         List<Call> calls = AbuInCallService.snapshot();
         if (selected != null && !calls.contains(selected)) selected = null;
+        if (selected == null && calls.size() == 1) selected = calls.get(0);
         int state = AbuInCallService.state(selected);
         if (selected != drawn || state != drawnState) {
             stopTone(); block(); drawn = selected; drawnState = state;
@@ -90,12 +91,23 @@ public final class CallActivity extends Activity {
         if (Build.VERSION.SDK_INT >= 27) {
             setShowWhenLocked(!calls.isEmpty()); setTurnScreenOn(ringing);
         } else {
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
+            if (!calls.isEmpty()) getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
+            else getWindow().clearFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
             if (ringing) getWindow().addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
             else getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
         }
         int position = scroll.getScrollY();
         body.removeAllViews();
+        if (calls.isEmpty()) {
+            stopTone(); dialpad = false; answer = null;
+            end.setEnabled(false); end.setOnClickListener(null); end.setVisibility(View.GONE);
+            text("Llamada finalizada");
+            SafeButton home = button("Volver a Inicio", Color.rgb(0, 105, 55));
+            body.addView(home); home.setOnClickListener(v -> goHome());
+            scroll.post(() -> scroll.scrollTo(0, 0));
+            return;
+        }
+        end.setVisibility(View.VISIBLE);
         AbuInCallService service = AbuInCallService.current();
         text(calls.isEmpty() ? "Sin llamadas disponibles"
             : selected == null ? "Elige la llamada" : AbuInCallService.name(this, selected));
@@ -181,7 +193,7 @@ public final class CallActivity extends Activity {
             }
         }
         Button back = button("Volver al inicio", Color.DKGRAY);
-        body.addView(back); back.setOnClickListener(v -> finish());
+        body.addView(back); back.setOnClickListener(v -> goHome());
         if (service == null) {
             Button fallback = button("Abrir teléfono del sistema", Color.DKGRAY);
             body.addView(fallback); fallback.setOnClickListener(v -> {
@@ -200,6 +212,10 @@ public final class CallActivity extends Activity {
             if (shownState == Call.STATE_RINGING) c.reject(false, null); else c.disconnect();
         }));
         scroll.post(() -> scroll.scrollTo(0, position));
+    }
+    private void goHome() {
+        startActivity(new Intent(this, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP));
+        finish();
     }
     private void stopTone() {
         if (toneCall != null) try { toneCall.stopDtmfTone(); } catch (RuntimeException ignored) { }

@@ -122,10 +122,30 @@ try:
     capture("05-speaker")
     time.sleep(1.2)
     tap("Colgar")
-    node("Sin llamadas disponibles")
+    node("Llamada finalizada")
     calls = adb("emu", "gsm", "list")
     assert "5550100" not in calls, calls
-    results.append("Llamada entrante simulada: contestar, estado de altavoz visible y colgar")
+    def assert_finished():
+        node("Llamada finalizada")
+        texts = {n.attrib.get("text", "") for n in hierarchy().iter("node")}
+        for forbidden in ("Colgar", "Rechazar", "Abrir teléfono del sistema", "Altavoz: esperando"):
+            assert forbidden not in texts, "Control residual después de finalizar: " + forbidden
+        tap("Volver a Inicio")
+        node("ABUHELP")
+    assert_finished()
+    # Remote hangup must reach the same clean final state.
+    adb("emu", "gsm", "call", "5550100")
+    node("Contestar")
+    tap("Contestar")
+    node("En llamada")
+    adb("emu", "gsm", "cancel", "5550100")
+    assert_finished()
+    # Rejecting a call must also clear controls, without launching another dialer.
+    adb("emu", "gsm", "call", "5550100")
+    node("Contestar")
+    tap("Rechazar")
+    assert_finished()
+    results.append("Finalización local, remota y rechazo: sin controles residuales; Volver a Inicio abre ABUHELP")
 
     # Grant the listener only in the disposable emulator, never via production app code.
     adb("shell", "cmd", "notification", "allow_listener", P + "/.NoticeListener")
@@ -178,9 +198,10 @@ try:
     node("En llamada")
     time.sleep(1.2)
     tap("Colgar")
-    node("Sin llamadas disponibles")
+    node("Llamada finalizada")
     assert "5550100" not in adb("emu", "gsm", "list")
-    results.append("Con panel bloqueado: llamada entrante visible, contestar y colgar")
+    assert_finished()
+    results.append("Con panel bloqueado: llamada visible, retorno a llamada desde Inicio y finalización limpia")
     adb("shell", "am", "start", "-W", "-a", "android.settings.WIFI_SETTINGS")
     time.sleep(1.2) # Background timeout must close the caregiver session.
     adb("shell", "input", "keyevent", "KEYCODE_HOME")
