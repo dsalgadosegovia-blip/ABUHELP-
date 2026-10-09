@@ -1,5 +1,5 @@
 """Emulator-only smoke checks. The modem call is simulated; no real phone is called."""
-import json, pathlib, re, subprocess, time, xml.etree.ElementTree as ET
+import base64, json, pathlib, re, subprocess, time, xml.etree.ElementTree as ET
 P = "cl.abuhelp.launcher"
 OUT = pathlib.Path("app/build/reports/smoke")
 OUT.mkdir(parents=True, exist_ok=True)
@@ -30,7 +30,9 @@ def tap(text):
     bounds = [int(x) for x in re.findall(r"\d+", n.attrib["bounds"])]
     adb("shell", "input", "tap", str((bounds[0]+bounds[2])//2), str((bounds[1]+bounds[3])//2))
 def capture(name):
-    (OUT / (name + ".png")).write_bytes(adb("exec-out", "screencap", "-p", binary=True))
+    png = adb("exec-out", "screencap", "-p", binary=True)
+    (OUT / (name + ".png")).write_bytes(png)
+    print("ABUHELP_SCREENSHOT " + name + " " + base64.b64encode(png).decode("ascii"))
 def launch():
     adb("shell", "am", "start", "-W", "-n", P + "/.MainActivity")
     node("ABUHELP")
