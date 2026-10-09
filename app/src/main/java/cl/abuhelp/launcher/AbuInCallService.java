@@ -241,6 +241,9 @@ public final class AbuInCallService extends InCallService {
         Notification notice = builder.build();
         try {
             if (!foreground) {
+                TelecomManager manager = getSystemService(TelecomManager.class);
+                if (manager == null || !getPackageName().equals(manager.getDefaultDialerPackage()))
+                    throw new SecurityException("ABUHELP must hold the default dialer role");
                 if (Build.VERSION.SDK_INT >= 29)
                     startForeground(NOTICE, notice, ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL);
                 else startForeground(NOTICE, notice);

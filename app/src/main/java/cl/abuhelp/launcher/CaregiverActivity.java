@@ -50,7 +50,7 @@ public class CaregiverActivity extends Activity{
   }));Ui.back(this,page);
  }
  private void setNewPin(){
-  LinearLayout box=new LinearLayout(this);box.setOrientation(1);
+  LinearLayout box=new LinearLayout(this);box.setOrientation(LinearLayout.VERTICAL);
   EditText a=Ui.input(this,"Nuevo PIN: seis números",18),b=Ui.input(this,"Repite el PIN",18);box.addView(a);box.addView(b);
   AlertDialog dialog=new AlertDialog.Builder(this).setTitle("Cambiar PIN").setView(box).setNegativeButton("Cancelar",null).setPositiveButton("Guardar",null).create();
   dialog.setOnShowListener(v->dialog.getButton(-1).setOnClickListener(w->{if(!guard()){dialog.dismiss();return;}String p=a.getText().toString();if(!p.matches("[0-9]{6}")||!p.equals(b.getText().toString())){a.setError("Seis números iguales en ambos campos");return;}
@@ -60,7 +60,7 @@ public class CaregiverActivity extends Activity{
   }));dialog.show();
  }
  private void addContact(){
-  LinearLayout box=new LinearLayout(this);box.setOrientation(1);box.setPadding(24,8,24,8);
+  LinearLayout box=new LinearLayout(this);box.setOrientation(LinearLayout.VERTICAL);box.setPadding(24,8,24,8);
   EditText name=Ui.input(this,"Nombre visible",InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_FLAG_CAP_WORDS),phone=Ui.input(this,"Teléfono con código de país",InputType.TYPE_CLASS_PHONE);box.addView(name);box.addView(phone);
   AlertDialog d=new AlertDialog.Builder(this).setTitle("Nuevo contacto").setView(box).setNegativeButton("Cancelar",null).setPositiveButton("Guardar",null).create();
   d.setOnShowListener(v->d.getButton(-1).setOnClickListener(w->{if(!guard()){d.dismiss();return;}String nm=name.getText().toString().trim(),ph=phone.getText().toString().trim();

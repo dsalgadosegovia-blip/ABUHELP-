@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.VIBRATE" />
@@ -65,7 +65,10 @@
         <activity android:name=".CallActivity" android:exported="false"
             android:launchMode="singleTop"
             android:showWhenLocked="true" android:turnScreenOn="true" />
-        <service android:name=".AbuInCallService"
+        <!-- ROLE_DIALER is the documented alternative prerequisite to MANAGE_OWN_CALLS.
+             AGP 8.7 lint cannot infer the user-granted role. refresh() checks it before FGS.
+             https://developer.android.com/develop/background-work/services/fgs/service-types#phone-call -->
+        <service android:name=".AbuInCallService" tools:ignore="ForegroundServicePermission"
             android:permission="android.permission.BIND_INCALL_SERVICE"
             android:exported="true" android:foregroundServiceType="phoneCall">
             <meta-data android:name="android.telecom.IN_CALL_SERVICE_UI"

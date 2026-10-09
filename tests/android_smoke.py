@@ -4,8 +4,8 @@ P = "cl.abuhelp.launcher"
 OUT = pathlib.Path("app/build/reports/smoke")
 OUT.mkdir(parents=True, exist_ok=True)
 results = []
-def adb(*args, check=True, binary=False):
-    r = subprocess.run(["adb", *args], capture_output=True, timeout=40)
+def adb(*args, check=True, binary=False, data=None):
+    r = subprocess.run(["adb", *args], capture_output=True, timeout=40, input=data)
     if check and r.returncode: raise RuntimeError(r.stderr.decode(errors="replace"))
     return r.stdout if binary else r.stdout.decode(errors="replace")
 def hierarchy():
@@ -40,8 +40,14 @@ try:
     adb("shell", "wm", "dismiss-keyguard", check=False)
     launch()
     capture("01-home")
+    adb("shell", "am", "force-stop", P)
+    adb("shell", "run-as", P, "mkdir", "-p", "shared_prefs")
+    fixture = b'<?xml version="1.0" encoding="utf-8"?><map><string name="contacts">[{"name":"Contacto de prueba","phone":"5550100"}]</string></map>'
+    adb("shell", "run-as", P, "tee", "shared_prefs/abuhelp.xml", data=fixture)
+    launch()
     tap("Llamar")
     node("¿A quién quieres llamar?")
+    node("Contacto de prueba")
     capture("02-contacts")
     adb("shell", "input", "keyevent", "KEYCODE_BACK")
     node("ABUHELP")
@@ -54,6 +60,7 @@ try:
     launch()
     tap("Llamar")
     node("¿A quién quieres llamar?")
+    node("Contacto de prueba")
     capture("03-large-font-contacts")
     results.append("Arranque y contactos con fuente del sistema 200%")
     adb("shell", "settings", "put", "system", "font_scale", "1.0")
@@ -67,6 +74,7 @@ try:
     launch()
     adb("emu", "gsm", "call", "5550100")
     node("Contestar", timeout=45)
+    node("Contacto de prueba")
     time.sleep(1)
     capture("04-incoming")
     tap("Contestar")
@@ -86,6 +94,9 @@ try:
     print(json.dumps({"passed":results}, ensure_ascii=False))
 except Exception:
     capture("failure")
+    print((OUT / "last-window.xml").read_text(encoding="utf-8") if (OUT / "last-window.xml").exists() else "No UI hierarchy")
+    log = adb("logcat", "-d", "-t", "1500", check=False)
+    print("\n".join(line for line in log.splitlines() if "AndroidRuntime" in line or "abuhelp" in line.lower()))
     raise
 finally:
     (OUT / "logcat.txt").write_text(adb("logcat", "-d", "-t", "1500", check=False), encoding="utf-8")

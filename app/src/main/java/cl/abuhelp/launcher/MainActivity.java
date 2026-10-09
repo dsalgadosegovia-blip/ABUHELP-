@@ -13,7 +13,7 @@ public class MainActivity extends Activity{
   String[] labels={"Llamar","YouTube","Noticias","Clima\nSan Miguel","Mahjong","Remedios"};
   Runnable[] actions={()->startActivity(new Intent(this,ContactsActivity.class)),()->launch("com.google.android.youtube","https://www.youtube.com"),()->launch("com.google.android.apps.magazines","https://news.google.com/topstories?hl=es-419&gl=CL&ceid=CL:es-419"),()->openWeather(),()->mahjong(),()->startActivity(new Intent(this,RemindersActivity.class))};
   boolean two=getResources().getConfiguration().screenWidthDp>=360&&getResources().getConfiguration().fontScale<=1.3f;
-  if(two){for(int row=0;row<3;row++){LinearLayout line=new LinearLayout(this);line.setOrientation(0);
+  if(two){for(int row=0;row<3;row++){LinearLayout line=new LinearLayout(this);line.setOrientation(LinearLayout.HORIZONTAL);
    for(int col=0;col<2;col++){int n=row*2+col;Button btn=Ui.button(this,labels[n],n==0?Ui.GREEN:n==1?Ui.RED:Ui.NAVY,actions[n]);
     LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(0,-1,1);p.setMargins(col==0?0:Ui.dp(this,6),Ui.dp(this,6),col==0?Ui.dp(this,6):0,Ui.dp(this,6));
     line.addView(btn,p);}page.addView(line,new LinearLayout.LayoutParams(-1,-2));}}
