@@ -19,7 +19,7 @@ def node(text, timeout=35):
     while time.monotonic() < until:
         try:
             for n in hierarchy().iter("node"):
-                if n.attrib.get("text") == text:
+                if n.attrib.get("text", "").casefold() == text.casefold():
                     return n
         except Exception as e: last = e
         time.sleep(0.8)
@@ -125,8 +125,8 @@ try:
     tap_scrolled("Protección del teléfono")
     tap_scrolled("Activar protección")
     tap("Confirmar")
-    node("Protección activa")
     tap("Entendido")
+    node("Protección activa")
     policy = adb("shell", "dumpsys", "device_policy")
     for key in ("no_change_wifi_state", "no_airplane_mode", "no_config_brightness"):
         assert key in policy, "No se aplicó " + key
@@ -139,12 +139,12 @@ try:
     enter_test_pin()
     tap_scrolled("Protección del teléfono")
     tap_scrolled("Desactivar protección")
-    node("Administración lista; protección desactivada")
     tap("Entendido")
+    node("Administración lista; protección desactivada")
     tap_scrolled("Retirar administración")
     tap("Confirmar")
-    node("Preparación pendiente")
     tap("Entendido")
+    node("Preparación pendiente")
     policy = adb("shell", "dumpsys", "device_policy")
     assert "Device Owner:" not in policy, "La administración sigue activa"
     results.append("Salida con PIN: desactivar protección y retirar administración sin borrar datos")
