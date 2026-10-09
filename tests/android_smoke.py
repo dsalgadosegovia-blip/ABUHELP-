@@ -77,7 +77,7 @@ try:
     fixture = b'<?xml version="1.0" encoding="utf-8"?><map><string name="contacts">[{"name":"Contacto de prueba","phone":"5550100"}]</string></map>'
     adb("shell", "run-as", P, "tee", "shared_prefs/abuhelp.xml", data=fixture)
     launch()
-    tap("Llamar")
+    tap_scrolled("Llamar")
     node("¿A quién quieres llamar?")
     node("Contacto de prueba")
     capture("02-contacts")
@@ -127,6 +127,25 @@ try:
     assert "5550100" not in calls, calls
     results.append("Llamada entrante simulada: contestar, estado de altavoz visible y colgar")
 
+    # Grant the listener only in the disposable emulator, never via production app code.
+    adb("shell", "cmd", "notification", "allow_listener", P + "/.NoticeListener")
+    time.sleep(2)
+    adb("shell", "cmd", "notification", "post", "-t", "Aviso de prueba", "abuhelp-test", "Mensaje local de prueba")
+    launch()
+    for n in hierarchy().iter("node"):
+        if n.attrib.get("text", "").startswith("Notificaciones"):
+            tap(n.attrib["text"])
+            break
+    node("Mensaje local de prueba")
+    capture("06-notifications")
+    # Same tag updates the existing item, including while the tray is open.
+    adb("shell", "cmd", "notification", "post", "-t", "Aviso actualizado", "abuhelp-test", "Mensaje actualizado")
+    node("Mensaje actualizado")
+    assert not any(n.attrib.get("text") == "Mensaje local de prueba" for n in hierarchy().iter("node"))
+    tap("Volver a Inicio")
+    node("ABUHELP")
+    results.append("Campana muestra avisos reales y actualiza contenido sin accesos a ajustes")
+
     # Provision only this disposable emulator, then exercise real caregiver UI.
     adb("shell", "dpm", "set-device-owner", P + "/.FamilyAdminReceiver")
     adb("shell", "svc", "wifi", "enable")
@@ -141,7 +160,23 @@ try:
     policy = adb("shell", "dumpsys", "device_policy")
     for key in ("no_change_wifi_state", "no_airplane_mode", "no_config_brightness"):
         assert key in policy, "No se aplicó " + key
-    capture("06-device-protection")
+    capture("07-device-protection")
+    adb("shell", "input", "keyevent", "KEYCODE_HOME")
+    node("ABUHELP")
+    adb("shell", "input", "swipe", "500", "1", "500", "1500", "600")
+    node("ABUHELP")
+    assert not any(n.attrib.get("text") == "Mensaje actualizado" for n in hierarchy().iter("node")), "Se abrió el panel bloqueado"
+    results.append("Deslizar desde arriba no despliega el panel con protección activa")
+    # Incoming calls must remain actionable despite disabled system shade.
+    adb("emu", "gsm", "call", "5550100")
+    node("Contestar", timeout=45)
+    tap("Contestar")
+    node("En llamada")
+    time.sleep(1.2)
+    tap("Colgar")
+    node("Sin llamadas disponibles")
+    assert "5550100" not in adb("emu", "gsm", "list")
+    results.append("Con panel bloqueado: llamada entrante visible, contestar y colgar")
     adb("shell", "am", "start", "-W", "-a", "android.settings.WIFI_SETTINGS")
     time.sleep(1.2) # Background timeout must close the caregiver session.
     adb("shell", "input", "keyevent", "KEYCODE_HOME")
@@ -153,6 +188,16 @@ try:
     tap_scrolled("Desactivar protección")
     tap("Entendido")
     node("Administración lista; protección desactivada")
+    # The tray must really reopen after caregiver recovery.
+    adb("shell", "input", "swipe", "500", "1", "500", "1500", "600")
+    node("Mensaje actualizado")
+    adb("shell", "cmd", "statusbar", "collapse")
+    time.sleep(1)
+    # Re-enter through the caregiver PIN if leaving the app locked the session.
+    launch()
+    tap_scrolled("Acceso familiar")
+    enter_test_pin()
+    tap_scrolled("Protección del teléfono")
     tap_scrolled("Retirar administración")
     tap("Confirmar")
     tap("Entendido")

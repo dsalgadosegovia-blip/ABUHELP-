@@ -18,6 +18,7 @@ public class CaregiverActivity extends Activity{
   page=Ui.page(this,"Acceso familiar");
   page.addView(Ui.text(this,"Sesión de configuración: hasta 5 minutos. Al salir de ABUHELP se vuelve a bloquear.",20,false));
   page.addView(Ui.button(this,"Protección del teléfono",Ui.NAVY,()->{if(guard())startActivity(new Intent(this,ProtectionActivity.class));}));
+  page.addView(Ui.button(this,"Permitir lectura de notificaciones",Ui.NAVY,()->{if(guard())new AlertDialog.Builder(this).setTitle("Avisos en ABUHELP").setMessage("Android dará acceso al contenido de las notificaciones, incluidos mensajes. ABUHELP los muestra solo en este teléfono, sin guardarlos ni enviarlos. En la siguiente pantalla activa Avisos de ABUHELP.").setNegativeButton("Cancelar",null).setPositiveButton("Continuar",(d,w)->{if(guard())Ui.open(this,new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS));}).show();}));
   page.addView(Ui.button(this,"Añadir contacto",Ui.NAVY,()->{if(guard())addContact();}));
   page.addView(Ui.button(this,"Importar contactos del teléfono",Ui.NAVY,()->{if(guard())importContacts();}));
   page.addView(Ui.button(this,"Elegir aplicación Mahjong",Ui.NAVY,()->{if(guard())chooseMahjong();}));

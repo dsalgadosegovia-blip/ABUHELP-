@@ -23,15 +23,21 @@ Esta guía no contiene ningún comando de borrado. Requiere un teléfono nuevo o
 Continúa solamente si Android informa que se asignó correctamente el device owner. Si rechaza la preparación por cuentas, configuración previa o restricciones de HyperOS, conserva el mensaje y solicita ayuda; no borres cuentas ni restablezcas el equipo a ciegas. La compatibilidad exacta debe verificarse en ese Redmi.
 
 7. Desactiva la depuración USB y revoca las autorizaciones USB después de la preparación.
-8. Configura las cuentas, YouTube, WhatsApp y Mahjong. En Acceso familiar añade contactos, selecciona Mahjong, habilita avisos/pantalla completa y elige ABUHELP como teléfono e inicio. Prueba las llamadas y los recordatorios.
+8. Configura las cuentas, YouTube, WhatsApp y Mahjong. En Acceso familiar añade contactos, selecciona Mahjong, habilita avisos/pantalla completa y «Permitir lectura de notificaciones» y elige ABUHELP como teléfono e inicio. Prueba las llamadas y los recordatorios.
 9. En **Acceso familiar → Protección del teléfono**, pulsa **Activar protección** y confirma. Primero debe estar encendido el Wi-Fi y apagado el modo avión. El brillo se fija al 63%.
 10. En la navegación del sistema selecciona los tres botones, para que tu padre pueda tocar Inicio sin depender de gestos. La ubicación de esta opción depende de HyperOS.
 
 ## Qué protege
 
-La administración aplica restricciones de Android al encendido y configuración del Wi-Fi, modo avión, brillo del sistema, redes móviles, restablecimiento de red, fecha/hora, tiempo de apagado de pantalla y controles de aplicaciones. Impide desinstalar ABUHELP y fija su pantalla de inicio. Las notificaciones y los botones de volumen se mantienen disponibles.
+La administración aplica restricciones de Android al encendido y configuración del Wi-Fi, modo avión, brillo del sistema, redes móviles, restablecimiento de red, fecha/hora, tiempo de apagado de pantalla y controles de aplicaciones. Impide desinstalar ABUHELP y fija su pantalla de inicio. El panel superior queda bloqueado con el teléfono desbloqueado; la campana «Notificaciones» muestra los avisos activos en letra grande y solo permite leerlos. No guarda su contenido, no lo envía ni ejecuta acciones de las notificaciones. Los botones de volumen se mantienen disponibles. Android puede ocultar contenido sensible y los avisos descartados no se conservan.
+
+La API de bloqueo del panel no se aplica en la pantalla bloqueada. Desactiva manualmente en HyperOS el acceso al centro de control y barra de notificaciones desde la pantalla de bloqueo; la ubicación depende de la versión. Comprueba deslizando desde ambos extremos superiores con el teléfono bloqueado y desbloqueado. Si sigue apareciendo, no des por terminado ese requisito. No se elimina el bloqueo de pantalla ni se activa un modo quiosco que pueda impedir abrir otras aplicaciones.
 
 No garantiza conexión si falla el router, la SIM o el operador. No transforma las pantallas internas ni los controles de llamada de WhatsApp. El bloqueo del brillo se refiere al ajuste del sistema; las aplicaciones externas pueden tener controles visuales propios.
+
+## Actualizar desde la beta anterior
+
+La beta anterior se firmó con una clave de prueba efímera. Una nueva compilación no se puede instalar encima con una firma distinta. No retires la administración ni desinstales hasta conservar contactos y horarios y acordar la migración. Desinstalar pierde los datos locales de ABUHELP, incluido PIN, contactos elegidos y recordatorios. La nueva preparación como device owner puede exigir volver a retirar cuentas del teléfono. No se solicita restablecer ni borrar el teléfono.
 
 ## Volver y recuperar
 
