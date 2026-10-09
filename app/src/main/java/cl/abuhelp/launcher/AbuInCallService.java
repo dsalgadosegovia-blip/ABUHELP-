@@ -122,7 +122,7 @@ public final class AbuInCallService extends InCallService {
         callbacks.put(c, callback);
         c.registerCallback(callback, main);
         refresh();
-        if (state(c) != Call.STATE_RINGING || !notificationsReady(this)) bringToFront(c, false);
+        bringToFront(c, false); // InCallService may present the accessible call UI; notification remains the fallback.
     }
     @Override public void onCallRemoved(Call c) { remove(c); }
     private void remove(Call c) {

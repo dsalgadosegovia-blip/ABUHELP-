@@ -30,7 +30,7 @@ public class CaregiverActivity extends Activity{
   page.addView(Ui.text(this,"Contactos visibles",28,true));
   JSONArray cs=AppPrefs.contacts(this);
   for(int n=0;n<cs.length();n++){JSONObject c=cs.optJSONObject(n);if(c==null)continue;final int index=n;
-   page.addView(Ui.button(this,"Quitar: "+c.optString("name"),Ui.RED,()->{if(!guard())return;new AlertDialog.Builder(this).setMessage("¿Quitar este acceso de ABUHELP? El contacto original se conserva.").setNegativeButton("Cancelar",null).setPositiveButton("Quitar",(d,w)->{if(guard()){JSONArray list=AppPrefs.contacts(this);list.remove(index);AppPrefs.saveContacts(this,list);render();}}).show();});
+   page.addView(Ui.button(this,"Quitar: "+c.optString("name"),Ui.RED,()->{if(!guard())return;new AlertDialog.Builder(this).setMessage("¿Quitar este acceso de ABUHELP? El contacto original se conserva.").setNegativeButton("Cancelar",null).setPositiveButton("Quitar",(d,w)->{if(guard()){JSONArray list=AppPrefs.contacts(this);list.remove(index);AppPrefs.saveContacts(this,list);render();}}).show();}));
   }
   page.addView(Ui.button(this,"Cambiar PIN",Ui.NAVY,()->{if(guard())setNewPin();}));
   page.addView(Ui.button(this,"Terminar y bloquear",Ui.NAVY,()->{CaregiverGate.lock();finish();}));
