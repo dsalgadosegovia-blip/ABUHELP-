@@ -45,9 +45,10 @@ public final class DeviceProtection {
  }
  public static void disable(Context c){
   if(Build.VERSION.SDK_INT<33)throw new IllegalStateException("Requiere Android 13 o posterior.");
-  guard(c);InstallWindow.close(c);DevicePolicyManager d=manager(c);ComponentName a=admin(c);
+  guard(c);DevicePolicyManager d=manager(c);ComponentName a=admin(c);
   // Every step is attempted so a partial enable can always be recovered.
   RuntimeException failure=null;
+  try{InstallWindow.close(c);}catch(RuntimeException e){failure=e;}
   try{if(!d.setStatusBarDisabled(a,false))throw new IllegalStateException("No se pudo restaurar el panel superior.");}catch(RuntimeException e){failure=e;}
   for(String key:restrictions())try{d.clearUserRestriction(a,key);}catch(RuntimeException e){failure=e;}
   try{d.setUninstallBlocked(a,c.getPackageName(),false);}catch(RuntimeException e){failure=e;}

@@ -71,6 +71,9 @@ try:
     adb("install", "-r", "app/build/outputs/apk/debug/app-debug.apk")
     adb("shell", "input", "keyevent", "KEYCODE_WAKEUP")
     adb("shell", "wm", "dismiss-keyguard", check=False)
+    # Match a phone whose setup wizard has finished before testing the system shade.
+    adb("shell", "settings", "put", "global", "device_provisioned", "1")
+    adb("shell", "settings", "put", "secure", "user_setup_complete", "1")
     launch()
     capture("01-home")
     node("Linterna")
@@ -176,6 +179,12 @@ try:
     node("ABUHELP")
     results.append("Campana muestra avisos reales y actualiza contenido sin accesos a ajustes")
 
+    # Establish that SystemUI can open the shade before the app applies any policy.
+    adb("shell", "cmd", "statusbar", "expand-notifications")
+    node("Mensaje actualizado")
+    adb("shell", "cmd", "statusbar", "collapse")
+    results.append("Panel del sistema accesible antes de activar la protección")
+
     # Provision only this disposable emulator, then exercise real caregiver UI.
     adb("shell", "dpm", "set-device-owner", P + "/.FamilyAdminReceiver")
     adb("shell", "svc", "wifi", "enable")
@@ -197,6 +206,7 @@ try:
     capture("07-device-protection")
     adb("shell", "input", "keyevent", "KEYCODE_HOME")
     node("ABUHELP")
+    adb("shell", "cmd", "statusbar", "expand-notifications")
     adb("shell", "input", "swipe", "500", "50", "500", "1700", "600")
     node("ABUHELP")
     assert not any(n.attrib.get("text") == "Mensaje actualizado" for n in hierarchy().iter("node")), "Se abrió el panel bloqueado"
@@ -235,6 +245,7 @@ try:
     node("Administración lista; protección desactivada")
     time.sleep(1) # Let SystemUI receive the restored status-bar policy before the swipe.
     # The tray must really reopen after caregiver recovery.
+    adb("shell", "cmd", "statusbar", "expand-notifications")
     adb("shell", "input", "swipe", "500", "50", "500", "1700", "600")
     node("Mensaje actualizado")
     adb("shell", "cmd", "statusbar", "collapse")
@@ -260,6 +271,8 @@ except Exception:
     print((OUT / "last-window.xml").read_text(encoding="utf-8") if (OUT / "last-window.xml").exists() else "No UI hierarchy")
     log = adb("logcat", "-d", "-t", "1500", check=False)
     print("\n".join(line for line in log.splitlines() if "AndroidRuntime" in line or "abuhelp" in line.lower()))
+    print("SYSTEM_SHADE_DIAGNOSTIC", adb("shell", "dumpsys", "statusbar", check=False))
+    print("SETUP_COMPLETE", adb("shell", "settings", "get", "secure", "user_setup_complete", check=False))
     raise
 finally:
     (OUT / "logcat.txt").write_text(adb("logcat", "-d", "-t", "1500", check=False), encoding="utf-8")

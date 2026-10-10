@@ -3,7 +3,7 @@ import android.app.*;import android.os.*;
 public class AbuApp extends Application{
  private int started=0;private final Handler h=new Handler(Looper.getMainLooper());
  private final Runnable check=()->{if(started==0)CaregiverGate.lock();};
- @Override public void onCreate(){super.onCreate();registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks(){
+ @Override public void onCreate(){super.onCreate();try{InstallWindow.close(this);}catch(RuntimeException ignored){/* Retry on activity resume or backup alarm; pending state stays set. */}registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks(){
  public void onActivityStarted(Activity a){started++;h.removeCallbacks(check);}
  public void onActivityStopped(Activity a){started=Math.max(0,started-1);h.postDelayed(check,500);}
  public void onActivityCreated(Activity a,Bundle b){}public void onActivityResumed(Activity a){
