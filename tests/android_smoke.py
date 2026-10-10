@@ -219,10 +219,11 @@ try:
     node("Mensaje actualizado")
     adb("shell", "cmd", "statusbar", "collapse")
     time.sleep(1)
-    # Re-enter through the caregiver PIN if leaving the app locked the session.
+    # Expanding the system shade may preserve the caregiver session on some Android builds.
     launch()
     tap_scrolled("Acceso familiar")
-    enter_test_pin()
+    if any(n.attrib.get("class") == "android.widget.EditText" for n in hierarchy().iter("node")):
+        enter_test_pin()
     tap_scrolled("Protección del teléfono")
     tap_scrolled("Retirar administración")
     tap("Confirmar")
