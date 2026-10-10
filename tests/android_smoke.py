@@ -142,7 +142,10 @@ try:
     assert "5550100" not in calls, calls
     def assert_finished():
         node("Llamada finalizada")
-        assert "ABUHELP:call-proximity" not in adb("shell", "dumpsys", "power"), "Control de proximidad retenido tras colgar"
+        power = adb("shell", "dumpsys", "power")
+        held = re.search(r"(?ms)^\s*Wake Locks:.*?(?=^\s*Suspend Blockers:|\Z)", power)
+        assert held is not None, "No se pudo leer la lista de wake locks activos"
+        assert "ABUHELP:call-proximity" not in held.group(0), "Control de proximidad retenido tras colgar"
         texts = {n.attrib.get("text", "") for n in hierarchy().iter("node")}
         for forbidden in ("Colgar", "Rechazar", "Abrir teléfono del sistema", "Altavoz: esperando"):
             assert forbidden not in texts, "Control residual después de finalizar: " + forbidden
