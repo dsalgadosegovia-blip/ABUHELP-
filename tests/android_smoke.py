@@ -66,9 +66,9 @@ def capture(name):
     print("ABUHELP_SCREENSHOT " + name + " " + base64.b64encode(png).decode("ascii"))
 def launch():
     adb("shell", "am", "start", "-W", "-n", P + "/.MainActivity")
-    # A reused launcher activity keeps its previous scroll position.
-    adb("shell", "input", "swipe", "500", "500", "500", "1900", "350")
-    node("ABUHELP")
+    # Reusing MainActivity may preserve scroll/focus; identify its primary actions.
+    assert node("Llamar").attrib.get("package") == P
+    assert node("YouTube").attrib.get("package") == P
 try:
     adb("install", "-r", "app/build/outputs/apk/debug/app-debug.apk")
     adb("shell", "input", "keyevent", "KEYCODE_WAKEUP")
