@@ -1,10 +1,11 @@
 """Emulator-only smoke checks. The modem call is simulated; no real phone is called."""
-import base64, json, pathlib, re, subprocess, time, xml.etree.ElementTree as ET
+import base64, json, pathlib, re, shlex, subprocess, time, xml.etree.ElementTree as ET
 P = "cl.abuhelp.launcher"
 OUT = pathlib.Path("app/build/reports/smoke")
 OUT.mkdir(parents=True, exist_ok=True)
 results = []
 def adb(*args, check=True, binary=False, data=None):
+    if args and args[0] == "shell": args = ("shell", shlex.join(args[1:]))
     r = subprocess.run(["adb", *args], capture_output=True, timeout=40, input=data)
     if check and r.returncode: raise RuntimeError(r.stderr.decode(errors="replace"))
     return r.stdout if binary else r.stdout.decode(errors="replace")
