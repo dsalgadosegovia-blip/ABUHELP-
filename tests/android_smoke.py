@@ -244,9 +244,8 @@ try:
     tap("Entendido")
     node("Administración lista; protección desactivada")
     time.sleep(1) # Let SystemUI receive the restored status-bar policy before the swipe.
-    # The tray must really reopen after caregiver recovery.
+    # One expansion opens notifications; a second swipe would instead open full Quick Settings.
     adb("shell", "cmd", "statusbar", "expand-notifications")
-    adb("shell", "input", "swipe", "500", "50", "500", "1700", "600")
     node("Mensaje actualizado")
     adb("shell", "cmd", "statusbar", "collapse")
     time.sleep(1)
