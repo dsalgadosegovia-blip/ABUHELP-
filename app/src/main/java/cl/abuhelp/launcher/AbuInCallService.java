@@ -25,6 +25,7 @@ public final class AbuInCallService extends InCallService {
     private final Handler main = new Handler(Looper.getMainLooper());
     private NotificationManager notifications; private CallAudioState audio;
     private Ringtone ringtone;
+    private CallProximity proximity;
     private int ringingId = -1, lastNoticeCall = -1;
     private boolean foreground;
     public String problem = "";
@@ -100,6 +101,7 @@ public final class AbuInCallService extends InCallService {
     @Override public void onCreate() {
         super.onCreate();
         instance = this;
+        proximity = new CallProximity(this);
         notifications = getSystemService(NotificationManager.class);
         NotificationChannel channel = new NotificationChannel(CHANNEL, "Llamadas",
             NotificationManager.IMPORTANCE_HIGH);
@@ -152,7 +154,7 @@ public final class AbuInCallService extends InCallService {
         if (n != null) silenced.remove(n);
         refresh();
     }
-    @Override public void onCallAudioStateChanged(CallAudioState a) { audio = a; fire(); }
+    @Override public void onCallAudioStateChanged(CallAudioState a) { audio = a; updateProximity(); fire(); }
     public CallAudioState audioState() {
         return audio != null ? audio : getCallAudioState();
     }
@@ -210,9 +212,27 @@ public final class AbuInCallService extends InCallService {
         List<Call> active = snapshot();
         bringToFront(active.size() == 1 ? active.get(0) : null, dialpad);
     }
+    private void updateProximity() {
+        if (proximity == null) return;
+        CallAudioState a = audioState();
+        boolean atEar = false;
+        if (a != null) for (Call c : snapshot()) {
+            Call.Details d = c.getDetails();
+            if (ProximityPolicy.atEar(state(c), a.getRoute(), d == null ? 0 : d.getVideoState())) {
+                atEar = true; break;
+            }
+        }
+        proximity.update(atEar);
+    }
+    @Override public boolean onUnbind(Intent intent) {
+        if (proximity != null) proximity.close();
+        audio = null;
+        return super.onUnbind(intent);
+    }
     private void refresh() {
         if (instance != this) return;
         List<Call> live = snapshot();
+        updateProximity();
         Call incoming = null;
         for (Call c : live) if (state(c) == Call.STATE_RINGING) { incoming = c; break; }
         updateRingtone(incoming);
@@ -259,6 +279,7 @@ public final class AbuInCallService extends InCallService {
     }
     private static void fire() { for (Runnable r : listeners) try { r.run(); } catch (RuntimeException ignored) { } }
     @Override public void onDestroy() {
+        if (proximity != null) proximity.close();
         stopRingtone(); main.removeCallbacksAndMessages(null);
         for (Map.Entry<Call,Call.Callback> entry : callbacks.entrySet())
             entry.getKey().unregisterCallback(entry.getValue());

@@ -142,6 +142,7 @@ try:
     assert "5550100" not in calls, calls
     def assert_finished():
         node("Llamada finalizada")
+        assert "ABUHELP:call-proximity" not in adb("shell", "dumpsys", "power"), "Control de proximidad retenido tras colgar"
         texts = {n.attrib.get("text", "") for n in hierarchy().iter("node")}
         for forbidden in ("Colgar", "Rechazar", "Abrir teléfono del sistema", "Altavoz: esperando"):
             assert forbidden not in texts, "Control residual después de finalizar: " + forbidden
