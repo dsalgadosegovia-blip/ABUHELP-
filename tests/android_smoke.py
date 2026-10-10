@@ -66,6 +66,8 @@ def capture(name):
     print("ABUHELP_SCREENSHOT " + name + " " + base64.b64encode(png).decode("ascii"))
 def launch():
     adb("shell", "am", "start", "-W", "-n", P + "/.MainActivity")
+    # A reused launcher activity keeps its previous scroll position.
+    adb("shell", "input", "swipe", "500", "500", "500", "1900", "350")
     node("ABUHELP")
 try:
     adb("install", "-r", "app/build/outputs/apk/debug/app-debug.apk")
