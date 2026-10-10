@@ -3,6 +3,10 @@
 Versión inicial de evaluación. Launcher, contactos con letra grande, controles propios de llamadas telefónicas, voz mediante botón y recordatorios locales.
 
 ## Funciones
+- Campana de notificaciones de lectura en letra grande; bloqueo del panel superior al activar protección (pantalla desbloqueada).
+- Linterna con icono y estado Encender/Apagar, sin capturar imágenes; requiere permiso de cámara y flash disponible.
+- Todas las aplicaciones accesibles desde Acceso familiar con PIN. Al abrir una aplicación externa se cierra la sesión familiar.
+- Al colgar, rechazar o terminar una llamada desde el otro extremo: Llamada finalizada y Volver a Inicio, sin Colgar ni abrir otro teléfono.
 - Inicio fijo: Llamar, YouTube, Noticias, Clima, Mahjong y Remedios.
 - Contactos seleccionados por un familiar; importación opcional de la agenda y alta manual.
 - Teléfono predeterminado con Contestar, Rechazar, Colgar y Altavoz grandes. Requiere conceder el rol de teléfono.

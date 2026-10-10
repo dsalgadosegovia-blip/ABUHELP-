@@ -73,6 +73,15 @@ try:
     adb("shell", "wm", "dismiss-keyguard", check=False)
     launch()
     capture("01-home")
+    node("Linterna")
+    # No real LED exists in this emulator; verify unavailable hardware is handled safely.
+    adb("shell", "pm", "grant", P, "android.permission.CAMERA")
+    adb("shell", "am", "force-stop", P)
+    launch()
+    tap_scrolled("Linterna")
+    node("Este dispositivo no ofrece una linterna disponible.")
+    tap("Entendido")
+    results.append("Linterna sin hardware: aviso claro, sin cierre de la aplicación; LED físico pendiente")
     adb("shell", "am", "force-stop", P)
     adb("shell", "run-as", P, "mkdir", "-p", "shared_prefs")
     fixture = b'<?xml version="1.0" encoding="utf-8"?><map><string name="contacts">[{"name":"Contacto de prueba","phone":"5550100"}]</string></map>'
@@ -173,18 +182,22 @@ try:
     launch()
     tap_scrolled("Acceso familiar")
     enter_test_pin()
+    tap_scrolled("Todas las aplicaciones")
+    node("Todas las aplicaciones")
+    # Close the family-only app picker without launching or modifying another app.
+    tap("Volver")
     tap_scrolled("Protección del teléfono")
     tap_scrolled("Activar protección")
     tap("Confirmar")
     tap("Entendido")
     node("Protección activa")
     policy = adb("shell", "dumpsys", "device_policy")
-    for key in ("no_change_wifi_state", "no_airplane_mode", "no_config_brightness"):
+    for key in ("no_change_wifi_state", "no_airplane_mode", "no_config_brightness", "no_install_apps", "no_install_unknown_sources", "no_install_unknown_sources_globally"):
         assert key in policy, "No se aplicó " + key
     capture("07-device-protection")
     adb("shell", "input", "keyevent", "KEYCODE_HOME")
     node("ABUHELP")
-    adb("shell", "input", "swipe", "500", "1", "500", "1500", "600")
+    adb("shell", "input", "swipe", "500", "50", "500", "1700", "600")
     node("ABUHELP")
     assert not any(n.attrib.get("text") == "Mensaje actualizado" for n in hierarchy().iter("node")), "Se abrió el panel bloqueado"
     results.append("Deslizar desde arriba no despliega el panel con protección activa")
@@ -210,12 +223,19 @@ try:
     results.append("Administración: Wi-Fi, modo avión y brillo restringidos; Inicio regresa a ABUHELP")
     tap_scrolled("Acceso familiar")
     enter_test_pin()
+    tap_scrolled("Instalar desde Play Store")
+    tap("Abrir Play Store")
+    node("Google Play Store no está disponible.")
+    tap("Entendido")
+    assert "no_install_apps" in adb("shell", "dumpsys", "device_policy"), "La ausencia de Play Store dejó habilitadas instalaciones"
+    results.append("Sin Play Store: instalación rechazada y bloqueo conservado")
     tap_scrolled("Protección del teléfono")
     tap_scrolled("Desactivar protección")
     tap("Entendido")
     node("Administración lista; protección desactivada")
+    time.sleep(1) # Let SystemUI receive the restored status-bar policy before the swipe.
     # The tray must really reopen after caregiver recovery.
-    adb("shell", "input", "swipe", "500", "1", "500", "1500", "600")
+    adb("shell", "input", "swipe", "500", "50", "500", "1700", "600")
     node("Mensaje actualizado")
     adb("shell", "cmd", "statusbar", "collapse")
     time.sleep(1)

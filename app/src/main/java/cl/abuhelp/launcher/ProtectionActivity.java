@@ -9,7 +9,7 @@ public final class ProtectionActivity extends Activity {
   LinearLayout page=Ui.page(this,"Protección del teléfono");
   boolean owner=DeviceProtection.owner(this),active=DeviceProtection.active(this);
   page.addView(Ui.text(this,!owner?"Preparación pendiente":active?(DeviceProtection.complete(this)?"Protección activa":"Revisar protección incompleta"):"Administración lista; protección desactivada",26,true));
-  page.addView(Ui.text(this,"Bloquea cambios del Wi-Fi, modo avión, brillo, redes móviles, fecha y controles de aplicaciones. Fija el brillo al 63% y el botón Inicio en ABUHELP. Bloquea el panel superior con el teléfono desbloqueado. Los avisos se leen desde la campana de Inicio. Conserva los botones de volumen.",22,false));
+  page.addView(Ui.text(this,"Bloquea instalaciones de aplicaciones y APK. Para instalar usa Play Store desde Acceso familiar. Bloquea cambios del Wi-Fi, modo avión, brillo, redes móviles, fecha y controles de aplicaciones. Fija el brillo al 63% y el botón Inicio en ABUHELP. Bloquea el panel superior con el teléfono desbloqueado. Los avisos se leen desde la campana de Inicio. Conserva los botones de volumen.",22,false));
   page.addView(Ui.text(this,"En la pantalla bloqueada Android no aplica el bloqueo del panel: un familiar debe desactivar ese acceso en los ajustes de HyperOS y probarlo. Verifica llamadas de teléfono y WhatsApp antes de usarlo a diario.",22,false));
   if(!owner){page.addView(Ui.text(this,"Un familiar debe preparar este teléfono nuevo por USB como dispositivo administrado. Instalar la APK o aceptar un permiso común no basta. Consulta la guía PREPARAR_TELEFONO del repositorio.",22,false));}
   else{

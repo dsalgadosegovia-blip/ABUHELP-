@@ -17,6 +17,8 @@ public class CaregiverActivity extends Activity{
   }
   page=Ui.page(this,"Acceso familiar");
   page.addView(Ui.text(this,"Sesión de configuración: hasta 5 minutos. Al salir de ABUHELP se vuelve a bloquear.",20,false));
+  page.addView(Ui.button(this,"Instalar desde Play Store",Ui.NAVY,()->{if(guard())new AlertDialog.Builder(this).setTitle("Instalación familiar: 5 minutos").setMessage("Mantén tú el teléfono durante la instalación. Se abrirá Play Store y se permitirán instalaciones durante un máximo de 5 minutos. Al volver a ABUHELP se bloquearán de nuevo. Los APK de páginas web siguen bloqueados.").setNegativeButton("Cancelar",null).setPositiveButton("Abrir Play Store",(dialog,which)->{if(!guard())return;try{InstallWindow.open(this);}catch(RuntimeException e){Ui.message(this,"Instalación",e.getMessage());}}).show();}));
+  page.addView(Ui.button(this,"Todas las aplicaciones",Ui.NAVY,()->{if(guard())allApps();}));
   page.addView(Ui.button(this,"Protección del teléfono",Ui.NAVY,()->{if(guard())startActivity(new Intent(this,ProtectionActivity.class));}));
   page.addView(Ui.button(this,"Permitir lectura de notificaciones",Ui.NAVY,()->{if(guard())new AlertDialog.Builder(this).setTitle("Avisos en ABUHELP").setMessage("Android dará acceso al contenido de las notificaciones, incluidos mensajes. ABUHELP los muestra solo en este teléfono, sin guardarlos ni enviarlos. En la siguiente pantalla activa Avisos de ABUHELP.").setNegativeButton("Cancelar",null).setPositiveButton("Continuar",(d,w)->{if(guard())Ui.open(this,new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS));}).show();}));
   page.addView(Ui.button(this,"Añadir contacto",Ui.NAVY,()->{if(guard())addContact();}));
@@ -85,6 +87,21 @@ public class CaregiverActivity extends Activity{
     }).show();
    });
   });
+ }
+ private void allApps(){
+  if(!guard())return;
+  List<ResolveInfo> apps=getPackageManager().queryIntentActivities(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER),0);
+  apps.sort((a,b)->a.loadLabel(getPackageManager()).toString().compareToIgnoreCase(b.loadLabel(getPackageManager()).toString()));
+  ArrayList<String> labels=new ArrayList<>();ArrayList<Intent> intents=new ArrayList<>();HashSet<String> seen=new HashSet<>();
+  for(ResolveInfo r:apps){
+   String pkg=r.activityInfo.packageName;if(pkg.equals(getPackageName())||!seen.add(pkg))continue;
+   Intent launch=getPackageManager().getLaunchIntentForPackage(pkg);if(launch==null)continue;
+   labels.add(r.loadLabel(getPackageManager()).toString());intents.add(launch);
+  }
+  if(labels.isEmpty()){Ui.message(this,"Aplicaciones","No hay otras aplicaciones disponibles para abrir.");return;}
+  new AlertDialog.Builder(this).setTitle("Todas las aplicaciones").setItems(labels.toArray(new String[0]),(dialog,index)->{
+   if(!guard())return;CaregiverGate.lock();Ui.open(this,intents.get(index));
+  }).setNegativeButton("Volver",null).show();
  }
  private void chooseMahjong(){
   Intent launch=new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER);

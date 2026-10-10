@@ -54,3 +54,13 @@ Esta beta usa firma de prueba. Antes de sustituirla por una APK con firma distin
 Comprueba con el teléfono desbloqueado y bloqueado que no se pueda desactivar el Wi-Fi, activar modo avión ni bajar el brillo. Prueba Inicio desde YouTube y Mahjong, llamadas entrantes/salientes, altavoz, WhatsApp, un recordatorio ficticio y un reinicio completo. Verifica que el PIN permita recuperar los ajustes. No entregues el equipo con una protección incompleta.
 
 Fuentes técnicas: [restricciones de Android](https://developer.android.com/reference/android/os/UserManager), [dispositivos dedicados](https://developer.android.com/work/dpc/dedicated-devices/cookbook).
+
+## Linterna, aplicaciones e instalaciones
+
+Linterna usa únicamente el flash, sin capturar imágenes. Acepta el permiso de cámara y vuelve a tocar el botón. El estado Encender/Apagar procede del sistema; verifica el LED en el Xiaomi y su comportamiento al abrir la cámara o una videollamada.
+
+Todas las aplicaciones está dentro de Acceso familiar; exige PIN y cierra esa sesión al abrir una aplicación externa.
+
+Con protección activa se bloquean las instalaciones ordinarias, incluidas las iniciadas desde anuncios que llevan a una tienda, y se bloquean los orígenes desconocidos. Instalar desde Play Store permite al familiar abrir la tienda del sistema y habilita instalaciones durante un máximo de cinco minutos, con cierre al volver a ABUHELP, al vencer la alarma o al reiniciar. Mantén el teléfono en tus manos durante esa ventana. No constituye una lista de permitidos de instaladores privilegiados del fabricante; los orígenes desconocidos siguen bloqueados, pero la ventana relaja temporalmente la restricción general de instalación. La compra/instalación dentro de Play Store sigue requiriendo la acción del familiar. Se requiere autorización de alarmas exactas para garantizar el cierre programado. El bloqueo también puede impedir actualizaciones automáticas mientras está activo; realiza el mantenimiento desde Acceso familiar.
+
+La descarga de un archivo desde un anuncio puede continuar: lo que se bloquea es instalarlo. No es un bloqueador de publicidad. Al terminar la preparación desactiva la depuración USB, pues ADB es una herramienta de administración.

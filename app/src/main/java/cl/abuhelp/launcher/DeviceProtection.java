@@ -14,7 +14,7 @@ public final class DeviceProtection {
  public static boolean complete(Context c){if(Build.VERSION.SDK_INT<33||!owner(c)||!active(c)||!AppPrefs.prefs(c).getBoolean("status_bar_blocked",false)||!NoticeListener.ready(c))return false;try{Bundle b=manager(c).getUserRestrictions(admin(c));for(String k:restrictions())if(!b.getBoolean(k))return false;return true;}catch(RuntimeException e){return false;}}
  private static void guard(Context c){if(!CaregiverGate.isUnlocked())throw new SecurityException("Introduce de nuevo el PIN familiar.");if(!owner(c))throw new IllegalStateException("Falta preparar ABUHELP como administrador del dispositivo.");if(Build.VERSION.SDK_INT<33)throw new IllegalStateException("La protección completa requiere Android 13 o posterior.");}
  @android.annotation.TargetApi(33)
- private static String[] restrictions(){return new String[]{UserManager.DISALLOW_CHANGE_WIFI_STATE,UserManager.DISALLOW_CONFIG_WIFI,UserManager.DISALLOW_AIRPLANE_MODE,UserManager.DISALLOW_CONFIG_BRIGHTNESS,UserManager.DISALLOW_CONFIG_MOBILE_NETWORKS,UserManager.DISALLOW_NETWORK_RESET,UserManager.DISALLOW_CONFIG_DATE_TIME,UserManager.DISALLOW_CONFIG_SCREEN_TIMEOUT,UserManager.DISALLOW_APPS_CONTROL};}
+ private static String[] restrictions(){return new String[]{UserManager.DISALLOW_INSTALL_APPS,UserManager.DISALLOW_INSTALL_UNKNOWN_SOURCES,UserManager.DISALLOW_INSTALL_UNKNOWN_SOURCES_GLOBALLY,UserManager.DISALLOW_CHANGE_WIFI_STATE,UserManager.DISALLOW_CONFIG_WIFI,UserManager.DISALLOW_AIRPLANE_MODE,UserManager.DISALLOW_CONFIG_BRIGHTNESS,UserManager.DISALLOW_CONFIG_MOBILE_NETWORKS,UserManager.DISALLOW_NETWORK_RESET,UserManager.DISALLOW_CONFIG_DATE_TIME,UserManager.DISALLOW_CONFIG_SCREEN_TIMEOUT,UserManager.DISALLOW_APPS_CONTROL};}
  public static void enable(Context c){
   if(Build.VERSION.SDK_INT<33)throw new IllegalStateException("Requiere Android 13 o posterior.");
   guard(c);if(active(c))throw new IllegalStateException("Desactiva primero la protección existente para revisarla.");
@@ -45,7 +45,7 @@ public final class DeviceProtection {
  }
  public static void disable(Context c){
   if(Build.VERSION.SDK_INT<33)throw new IllegalStateException("Requiere Android 13 o posterior.");
-  guard(c);DevicePolicyManager d=manager(c);ComponentName a=admin(c);
+  guard(c);InstallWindow.close(c);DevicePolicyManager d=manager(c);ComponentName a=admin(c);
   // Every step is attempted so a partial enable can always be recovered.
   RuntimeException failure=null;
   try{if(!d.setStatusBarDisabled(a,false))throw new IllegalStateException("No se pudo restaurar el panel superior.");}catch(RuntimeException e){failure=e;}

@@ -2,7 +2,7 @@ package cl.abuhelp.launcher;
 import android.app.*;import android.content.*;import android.content.pm.PackageManager;import android.net.Uri;
 import android.os.*;import android.widget.*;import java.time.*;import java.time.format.DateTimeFormatter;import java.util.*;import org.json.*;
 public class MainActivity extends Activity{
- private TextView clock,date,status;private Button missed,notices,ongoing;private VoiceAssistant voice;private final Handler h=new Handler(Looper.getMainLooper());
+ private TextView clock,date,status;private Button missed,notices,ongoing;private VoiceAssistant voice;private Flashlight flashlight;private final Handler h=new Handler(Looper.getMainLooper());
  private final Runnable tick=new Runnable(){public void run(){updateTime();h.postDelayed(this,1000);}};
  private final Runnable noticeChanged=()->h.post(this::updateNotices);
  private final Runnable calls=()->runOnUiThread(()->{if(voice!=null&&AbuInCallService.hasCalls())voice.stop();updateOngoing();});
@@ -13,6 +13,8 @@ public class MainActivity extends Activity{
   ongoing=Ui.button(this,"Volver a la llamada",Ui.GREEN,()->startActivity(new Intent(this,CallActivity.class)));page.addView(ongoing);updateOngoing();
   notices=Ui.button(this,"Notificaciones",Ui.NAVY,()->startActivity(new Intent(this,NotificationsActivity.class)));
   notices.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_notifications,0,0,0);page.addView(notices);updateNotices();
+  Button lamp=Ui.button(this,"Linterna",Ui.NAVY,()->{if(flashlight!=null)flashlight.toggle();});
+  lamp.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_flashlight,0,0,0);page.addView(lamp);flashlight=new Flashlight(this,lamp);
   missed=Ui.button(this,"Llamadas perdidas",Ui.RED,()->startActivity(new Intent(this,ContactsActivity.class)));page.addView(missed);updateMissed();
   String[] labels={"Llamar","YouTube","Noticias","Clima\nSan Miguel","Mahjong","Remedios"};
   Runnable[] actions={()->startActivity(new Intent(this,ContactsActivity.class)),()->launch("com.google.android.youtube","https://www.youtube.com"),()->launch("com.google.android.apps.magazines","https://news.google.com/topstories?hl=es-419&gl=CL&ceid=CL:es-419"),()->openWeather(),()->mahjong(),()->startActivity(new Intent(this,RemindersActivity.class))};
@@ -54,9 +56,9 @@ public class MainActivity extends Activity{
    default:voice.say("Puedes decir: abre YouTube, qué hora es, contactos, noticias, clima o recuérdame un remedio.");break;
   }
  }
- @Override protected void onResume(){super.onResume();NoticeListener.addObserver(noticeChanged);updateNotices();updateOngoing();h.removeCallbacks(tick);tick.run();AbuInCallService.addListener(calls);try{ReminderStore.rescheduleAll(this);}catch(Exception ignored){}}
- @Override protected void onPause(){NoticeListener.removeObserver(noticeChanged);AbuInCallService.removeListener(calls);h.removeCallbacks(tick);if(voice!=null)voice.stop();super.onPause();}
+ @Override protected void onResume(){super.onResume();if(flashlight!=null)flashlight.start();NoticeListener.addObserver(noticeChanged);updateNotices();updateOngoing();h.removeCallbacks(tick);tick.run();AbuInCallService.addListener(calls);try{ReminderStore.rescheduleAll(this);}catch(Exception ignored){}}
+ @Override protected void onPause(){if(flashlight!=null)flashlight.stop();NoticeListener.removeObserver(noticeChanged);AbuInCallService.removeListener(calls);h.removeCallbacks(tick);if(voice!=null)voice.stop();super.onPause();}
  @Override protected void onDestroy(){if(voice!=null)voice.destroy();h.removeCallbacksAndMessages(null);super.onDestroy();}
- @Override public void onRequestPermissionsResult(int r,String[] p,int[] g){super.onRequestPermissionsResult(r,p,g);if(r==401){status.setText(g.length>0&&g[0]==PackageManager.PERMISSION_GRANTED?"Micrófono habilitado. Toca Hablar.":"Puedes seguir usando los botones sin micrófono.");}}
+ @Override public void onRequestPermissionsResult(int r,String[] p,int[] g){super.onRequestPermissionsResult(r,p,g);if(r==Flashlight.PERMISSION){if(flashlight!=null)flashlight.start();Ui.message(this,"Linterna",g.length>0&&g[0]==PackageManager.PERMISSION_GRANTED?"Permiso concedido. Toca Linterna para encenderla.":"La linterna necesita el permiso de cámara. Los demás botones siguen disponibles.");}if(r==401){status.setText(g.length>0&&g[0]==PackageManager.PERMISSION_GRANTED?"Micrófono habilitado. Toca Hablar.":"Puedes seguir usando los botones sin micrófono.");}}
  @Override public void onBackPressed(){if(voice!=null)voice.stop();}
 }
